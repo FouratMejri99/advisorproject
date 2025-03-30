@@ -4,10 +4,10 @@ import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdvisorDashboard from "./pages/AdvisorDashboard";
-import Advisors from "./pages/Advisors";
-import Booking from "./pages/Booking";
 import Home from "./pages/Home";
 import Login from "./pages/login";
+import Loginadvisor from "./pages/loginadvisor";
+import Signadvisor from "./pages/Signadvisor";
 
 function App() {
   const [userType, setUserType] = useState(null); // null, 'admin', 'advisor', or 'normal'
@@ -18,10 +18,14 @@ function App() {
       <Navbar userType={userType} setUserType={setUserType} />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/advisors" element={<Advisors />} />
+
         <Route path="/login" element={<Login setUserType={setUserType} />} />
-        <Route path="/booking" element={<Booking />} />
+        <Route
+          path="/loginadvisor"
+          element={<Loginadvisor setUserType={setUserType} />} // Pass setUserType to Loginadvisor
+        />
         <Route path="/dashboard" element={<AdvisorDashboard />} />
+        <Route path="/signadvisor" element={<Signadvisor />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
       <Footer />

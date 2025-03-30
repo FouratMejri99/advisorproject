@@ -31,14 +31,13 @@ const Navbar = ({ userType, setUserType }) => {
   };
 
   const handleLogin = () => {
-    navigate("/login"); // Redirect to the Login page
+    navigate("/login"); // Redirect to the Login page (Admin or generic login)
     handleMenuClose(); // Close the menu after clicking login
   };
 
   const handleLoginAsAdvisor = () => {
-    setUserType("advisor"); // Set user type as advisor
-    navigate("/dashboard"); // Redirect to Advisor Dashboard
-    handleMenuClose(); // Close the menu after clicking login
+    navigate("/loginadvisor"); // Redirect to the Login page for Advisor
+    handleMenuClose(); // Close the menu after clicking login as advisor
   };
 
   return (
@@ -51,12 +50,8 @@ const Navbar = ({ userType, setUserType }) => {
           <Button color="inherit" component={Link} to="/">
             Home
           </Button>
-          <Button color="inherit" component={Link} to="/advisors">
-            Advisors
-          </Button>
-          <Button color="inherit" component={Link} to="/booking">
-            Booking
-          </Button>
+
+          {/* Conditionally render links based on user type */}
           {userType === "advisor" && (
             <Button color="inherit" component={Link} to="/dashboard">
               Advisor Dashboard
@@ -67,6 +62,8 @@ const Navbar = ({ userType, setUserType }) => {
               Admin Dashboard
             </Button>
           )}
+
+          {/* Profile menu for logged-in users */}
           <IconButton color="inherit" onClick={handleMenuOpen}>
             <AccountCircleIcon />
           </IconButton>

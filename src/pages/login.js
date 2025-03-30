@@ -15,7 +15,7 @@ const Login = ({ setUserType }) => {
       navigate("/admin"); // Redirect to Admin Dashboard
     } else if (username === "advisor" && password === "password") {
       setUserType("advisor");
-      navigate("/dashboard"); // Redirect to Advisor Dashboard
+      navigate("/advisor"); // Redirect to Advisor Dashboard
     } else {
       setError("Invalid username or password");
     }
@@ -24,7 +24,7 @@ const Login = ({ setUserType }) => {
   return (
     <Container maxWidth="xs">
       <Typography variant="h5" sx={{ mb: 2 }}>
-        Login
+        Admin Login
       </Typography>
       {error && <Typography color="error">{error}</Typography>}
       <TextField
