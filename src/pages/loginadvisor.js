@@ -23,7 +23,7 @@ const LoginAdvisor = ({ setUserType }) => {
       setUserType("advisor");
       // Store the logged-in advisor's username in localStorage
       localStorage.setItem("currentAdvisor", JSON.stringify(foundAdvisor));
-      navigate("/dashboard"); // Redirect to the Advisor Dashboard
+      navigate("/advisorcreaterequest"); // Redirect to the Advisor Dashboard
     } else {
       // If not found, show an error
       setError("Invalid username or password");

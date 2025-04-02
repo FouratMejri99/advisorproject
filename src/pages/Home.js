@@ -1,161 +1,93 @@
 import {
-  Alert,
   Button,
   Card,
   CardContent,
   Container,
   Grid,
   MenuItem,
-  Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
-
-// Function to generate a random username
-const generateRandomUsername = () => {
-  const randomNames = ["John", "Jane", "Alex", "Chris", "Taylor", "Sam"];
-  const randomSuffix = Math.floor(Math.random() * 1000);
-  return `${
-    randomNames[Math.floor(Math.random() * randomNames.length)]
-  }${randomSuffix}`;
-};
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate();
   const [postalCode, setPostalCode] = useState("");
-  const [apartmentType, setApartmentType] = useState("");
-  const [advisors, setAdvisors] = useState([]);
-  const [filteredAdvisors, setFilteredAdvisors] = useState([]);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [houseNo, setHouseNo] = useState("");
+  const [addition, setAddition] = useState("");
+  const [propertyType, setPropertyType] = useState("");
 
-  // Fetch advisors from localStorage when the component mounts
-  useEffect(() => {
-    const storedAdvisors = JSON.parse(localStorage.getItem("advisors")) || [];
-    setAdvisors(storedAdvisors);
-    setFilteredAdvisors(storedAdvisors); // Initially show all advisors
-  }, []);
-
-  // Handle search functionality
   const handleSearch = () => {
-    const results = advisors.filter(
-      (advisor) =>
-        (postalCode ? advisor.postalCode === postalCode : true) &&
-        (apartmentType ? advisor.apartmentType === apartmentType : true)
+    navigate(
+      `/advisorrequest?postalCode=${postalCode}&houseNo=${houseNo}&addition=${addition}&propertyType=${propertyType}`
     );
-    setFilteredAdvisors(results);
-  };
-
-  // Handle the "Request Service" functionality
-  const handleRequestService = (advisorId) => {
-    const randomUsername = generateRandomUsername();
-
-    // Update the advisor's data to include the new request
-    const updatedAdvisors = advisors.map((advisor) => {
-      if (advisor.id === advisorId) {
-        const updatedAdvisor = { ...advisor };
-        // Initialize requests array if it doesn't exist
-        updatedAdvisor.requests = updatedAdvisor.requests || [];
-        // Add the new request to this advisor's requests
-        updatedAdvisor.requests.push(randomUsername);
-        return updatedAdvisor;
-      }
-      return advisor;
-    });
-
-    // Update localStorage with the new data
-    localStorage.setItem("advisors", JSON.stringify(updatedAdvisors));
-    setAdvisors(updatedAdvisors); // Update the state to re-render the component
-
-    // Show alert with the request confirmation
-    setSnackbarMessage(
-      `Request from ${randomUsername} sent to Advisor ${advisorId}`
-    );
-    setOpenSnackbar(true);
-  };
-
-  // Close the Snackbar alert
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
   };
 
   return (
-    <Container maxWidth="sm" style={{ textAlign: "center", marginTop: "50px" }}>
-      <Typography variant="h4" gutterBottom>
-        Find an Energy Advisor
-      </Typography>
-      <TextField
-        label="Enter Postal Code"
-        variant="outlined"
-        fullWidth
-        value={postalCode}
-        onChange={(e) => setPostalCode(e.target.value)}
-        style={{ marginBottom: "20px" }}
-      />
-      <TextField
-        select
-        label="Select Apartment Type"
-        variant="outlined"
-        fullWidth
-        value={apartmentType}
-        onChange={(e) => setApartmentType(e.target.value)}
-        style={{ marginBottom: "20px" }}
-      >
-        <MenuItem value="House">House</MenuItem>
-        <MenuItem value="Apartment">Apartment</MenuItem>
-        <MenuItem value="Condo">Condo</MenuItem>
-      </TextField>
-      <Button variant="contained" color="primary" onClick={handleSearch}>
-        Search
-      </Button>
-
-      <Grid container spacing={3} style={{ marginTop: "20px" }}>
-        {filteredAdvisors.length > 0 ? (
-          filteredAdvisors.map((advisor) => (
-            <Grid item xs={12} sm={6} md={4} key={advisor.id}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6">{advisor.username}</Typography>
-                  <Typography variant="body1">
-                    Price: ${advisor.price}
-                  </Typography>
-                  <Typography variant="body2">
-                    Apartment Type: {advisor.apartmentType}
-                  </Typography>
-                  <Typography variant="body2">
-                    Postal Code: {advisor.postalCode}
-                  </Typography>
-
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    style={{ marginTop: "10px" }}
-                    onClick={() => handleRequestService(advisor.id)} // Trigger the request service action
-                  >
-                    Request Service
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))
-        ) : (
-          <Typography variant="h6" textAlign="center" sx={{ mt: 3 }}>
-            No advisors found.
+    <Container maxWidth="sm" style={{ marginTop: "50px" }}>
+      <Card>
+        <CardContent>
+          <Typography variant="h5" gutterBottom textAlign="center">
+            Find the Best Advisor
           </Typography>
-        )}
-      </Grid>
-
-      {/* Snackbar Alert */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000} // Show alert for 3 seconds
-        onClose={handleCloseSnackbar}
-      >
-        <Alert onClose={handleCloseSnackbar} severity="success">
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="Postal Code"
+                variant="outlined"
+                fullWidth
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="House No."
+                variant="outlined"
+                fullWidth
+                value={houseNo}
+                onChange={(e) => setHouseNo(e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="Add."
+                variant="outlined"
+                fullWidth
+                value={addition}
+                onChange={(e) => setAddition(e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                select
+                label="Type of Property"
+                variant="outlined"
+                fullWidth
+                value={propertyType}
+                onChange={(e) => setPropertyType(e.target.value)}
+              >
+                <MenuItem value="Apartment">Apartment</MenuItem>
+                <MenuItem value="Row/Between">Row/Between</MenuItem>
+                <MenuItem value="Corner/Semi-Detached">
+                  Corner/Semi-Detached House
+                </MenuItem>
+                <MenuItem value="Detached">Detached</MenuItem>
+              </TextField>
+            </Grid>
+          </Grid>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            style={{ marginTop: "20px" }}
+            onClick={handleSearch}
+          >
+            Search
+          </Button>
+        </CardContent>
+      </Card>
     </Container>
   );
 };

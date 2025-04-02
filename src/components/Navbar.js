@@ -47,16 +47,30 @@ const Navbar = ({ userType, setUserType }) => {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Energy Advisor Platform
           </Typography>
-          <Button color="inherit" component={Link} to="/">
-            Home
-          </Button>
+
+          {/* Conditionally render the Home button based on userType */}
+          {userType !== "advisor" && (
+            <Button color="inherit" component={Link} to="/">
+              Home
+            </Button>
+          )}
 
           {/* Conditionally render links based on user type */}
           {userType === "advisor" && (
-            <Button color="inherit" component={Link} to="/dashboard">
-              Advisor Dashboard
-            </Button>
+            <>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/advisorcreaterequest"
+              >
+                Requests
+              </Button>
+              <Button color="inherit" component={Link} to="/dashboard">
+                Advisor Dashboard
+              </Button>
+            </>
           )}
+
           {userType === "admin" && (
             <Button color="inherit" component={Link} to="/admin">
               Admin Dashboard

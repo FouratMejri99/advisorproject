@@ -1,200 +1,149 @@
+import { Cancel, CheckCircle } from "@mui/icons-material"; // ✅ Import Icons
 import {
-  Button,
   Container,
-  Grid,
-  MenuItem,
+  IconButton,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
-  TextField,
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
-// Function to fetch current logged-in advisor from localStorage
-const fetchLoggedInAdvisor = () => {
-  return JSON.parse(localStorage.getItem("currentAdvisor"));
-};
-
 const AdvisorDashboard = () => {
-  const [currentAdvisor, setCurrentAdvisor] = useState(null);
-  const [newPrice, setNewPrice] = useState("");
-  const [apartmentType, setApartmentType] = useState("");
-  const [postalCode, setPostalCode] = useState("");
   const [requests, setRequests] = useState([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // Fetch current advisor data
   useEffect(() => {
-    const advisor = fetchLoggedInAdvisor();
-    if (advisor) {
-      setCurrentAdvisor(advisor);
-      setRequests(advisor.requests || []);
+    const storedRequests =
+      JSON.parse(localStorage.getItem("advisorRequests")) || [];
+
+    // Filter only requests for the logged-in advisor
+    const loggedInAdvisor = JSON.parse(localStorage.getItem("currentAdvisor"));
+    if (loggedInAdvisor) {
+      const filteredRequests = storedRequests.filter(
+        (req) => req.advisorId === loggedInAdvisor.id
+      );
+      setRequests(filteredRequests);
     }
   }, []);
 
-  // Handle Price Update
-  const handlePriceUpdate = () => {
-    if (!newPrice || !apartmentType || !postalCode) return;
-
-    const updatedAdvisor = { ...currentAdvisor };
-
-    // Update price in advisor's data based on apartment type and postal code
-    updatedAdvisor.prices = updatedAdvisor.prices || [];
-    updatedAdvisor.prices.push({ apartmentType, postalCode, price: newPrice });
-
-    localStorage.setItem("currentAdvisor", JSON.stringify(updatedAdvisor));
-    setCurrentAdvisor(updatedAdvisor);
-    setNewPrice("");
-    setApartmentType("");
-    setPostalCode("");
-  };
-
-  // Handle Accept Request
-  const handleAcceptRequest = (request) => {
+  // Accept request
+  const handleAccept = (id) => {
     const updatedRequests = requests.map((req) =>
-      req.username === request.username ? { ...req, status: "Accepted" } : req
+      req.id === id ? { ...req, status: "accepted" } : req
     );
     setRequests(updatedRequests);
-
-    // Optionally, save the updated requests in localStorage if necessary
-    const updatedAdvisor = { ...currentAdvisor, requests: updatedRequests };
-    localStorage.setItem("currentAdvisor", JSON.stringify(updatedAdvisor));
+    localStorage.setItem("advisorRequests", JSON.stringify(updatedRequests));
   };
 
-  // Handle Decline Request
-  const handleDeclineRequest = (request) => {
-    const updatedRequests = requests.filter(
-      (req) => req.username !== request.username
+  // Reject request
+  const handleReject = (id) => {
+    const updatedRequests = requests.map((req) =>
+      req.id === id ? { ...req, status: "rejected" } : req
     );
     setRequests(updatedRequests);
-
-    // Optionally, save the updated requests in localStorage if necessary
-    const updatedAdvisor = { ...currentAdvisor, requests: updatedRequests };
-    localStorage.setItem("currentAdvisor", JSON.stringify(updatedAdvisor));
+    localStorage.setItem("advisorRequests", JSON.stringify(updatedRequests));
   };
-
-  // Handle Page Change for Table Pagination
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  // Handle Rows Per Page Change
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  if (!currentAdvisor) {
-    return <Typography variant="h6">Loading...</Typography>;
-  }
 
   return (
-    <Container maxWidth="md" style={{ marginTop: "20px" }}>
+    <Container maxWidth="lg" style={{ marginTop: "20px" }}>
       <Typography variant="h4" gutterBottom>
-        Advisor Dashboard
+        Incoming Requests
       </Typography>
 
-      {/* Price Update Form */}
-      <Typography variant="h6">Set Service Price</Typography>
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={4}>
-          <TextField
-            select
-            label="Apartment Type"
-            fullWidth
-            value={apartmentType}
-            onChange={(e) => setApartmentType(e.target.value)}
-          >
-            <MenuItem value="House">House</MenuItem>
-            <MenuItem value="Apartment">Apartment</MenuItem>
-            <MenuItem value="Condo">Condo</MenuItem>
-          </TextField>
-        </Grid>
-        <Grid item xs={4}>
-          <TextField
-            label="Postal Code"
-            fullWidth
-            value={postalCode}
-            onChange={(e) => setPostalCode(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <TextField
-            label="Price"
-            fullWidth
-            type="number"
-            value={newPrice}
-            onChange={(e) => setNewPrice(e.target.value)}
-          />
-        </Grid>
-      </Grid>
-      <Button variant="contained" color="primary" onClick={handlePriceUpdate}>
-        Update Price
-      </Button>
+      {requests.length === 0 ? (
+        <Typography variant="h6" color="textSecondary">
+          No requests received.
+        </Typography>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <strong>Client Name</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Property Type</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Price Range (€)</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Living Area (m²)</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Postal Code</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Status</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Actions</strong>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {requests.map((req) => {
+                const property = req.propertyDetails || {};
 
-      {/* Requests Table */}
-      <Typography variant="h6" sx={{ mt: 4 }}>
-        Your Requests
-      </Typography>
-      <TableContainer style={{ marginTop: "20px" }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Username</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {requests
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((request) => (
-                <TableRow key={request.username}>
-                  <TableCell>{request.username}</TableCell>
-                  <TableCell>${request.price}</TableCell>
-                  <TableCell>{request.status || "Pending"}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={() => handleAcceptRequest(request)}
-                      disabled={request.status === "Accepted"}
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      onClick={() => handleDeclineRequest(request)}
-                      disabled={request.status === "Declined"}
-                      sx={{ ml: 2 }}
-                    >
-                      Decline
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                return (
+                  <TableRow key={req.id}>
+                    <TableCell>{req.clientName}</TableCell>
+                    <TableCell>{property.propertyType || "N/A"}</TableCell>
+                    <TableCell>
+                      €{property.priceRange?.[0] || "N/A"} - €
+                      {property.priceRange?.[1] || "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {property.livingArea?.[0] || "N/A"} -{" "}
+                      {property.livingArea?.[1] || "N/A"}
+                    </TableCell>
+                    <TableCell>{property.postalCode || "N/A"}</TableCell>
+                    <TableCell>
+                      <Typography
+                        color={
+                          req.status === "pending"
+                            ? "warning.main"
+                            : req.status === "accepted"
+                            ? "success.main"
+                            : "error.main"
+                        }
+                      >
+                        {req.status}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      {req.status === "pending" && (
+                        <>
+                          {/* ✅ Accept Icon */}
+                          <IconButton
+                            color="success"
+                            onClick={() => handleAccept(req.id)}
+                          >
+                            <CheckCircle />
+                          </IconButton>
 
-      {/* Pagination */}
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={requests.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+                          {/* ❌ Reject Icon */}
+                          <IconButton
+                            color="error"
+                            onClick={() => handleReject(req.id)}
+                          >
+                            <Cancel />
+                          </IconButton>
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </Container>
   );
 };
