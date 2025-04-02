@@ -8,6 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 // Fetch all advisors data
 const fetchAdvisors = () => {
@@ -15,6 +16,10 @@ const fetchAdvisors = () => {
 };
 
 const AdvisorRequest = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const selectedPropertyType = queryParams.get("propertyType") || "";
+
   const [advisor, setAdvisor] = useState(null);
   const [properties, setProperties] = useState([]);
 
@@ -27,10 +32,18 @@ const AdvisorRequest = () => {
       );
       if (foundAdvisor) {
         setAdvisor(foundAdvisor);
-        setProperties(foundAdvisor.properties || []);
+
+        // Filter properties by selectedPropertyType from URL
+        const filteredProperties = selectedPropertyType
+          ? foundAdvisor.properties.filter(
+              (property) => property.propertyType === selectedPropertyType
+            )
+          : foundAdvisor.properties;
+
+        setProperties(filteredProperties);
       }
     }
-  }, []);
+  }, [selectedPropertyType]); // Trigger filtering when URL parameter changes
 
   const handleRequest = (advisorId, property) => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {
@@ -42,11 +55,11 @@ const AdvisorRequest = () => {
 
     // Create new request
     const newRequest = {
-      id: Date.now(), // Unique ID
-      clientName: currentUser.name, // Name of the user who sent the request
-      advisorId, // The advisor who will receive the request
-      propertyDetails: property, // Property details
-      status: "pending", // Initial status
+      id: Date.now(),
+      clientName: currentUser.name,
+      advisorId,
+      propertyDetails: property,
+      status: "pending",
     };
 
     // Save updated requests
@@ -67,12 +80,11 @@ const AdvisorRequest = () => {
       <Grid container spacing={2} direction="column">
         {properties.length === 0 ? (
           <Typography variant="h6" color="textSecondary">
-            No properties found.
+            No properties found for selected type.
           </Typography>
         ) : (
           properties.map((property, index) => (
             <Grid item xs={12} key={index}>
-              {/* Rectangular Card - Details on Left, Button on Right */}
               <Card
                 style={{
                   width: "100%",
@@ -84,7 +96,6 @@ const AdvisorRequest = () => {
                   padding: "20px",
                 }}
               >
-                {/* Left Section - Property Details */}
                 <CardContent style={{ flex: 3 }}>
                   <Typography variant="h6" component="div">
                     {property.propertyType}
@@ -102,7 +113,6 @@ const AdvisorRequest = () => {
                   </Typography>
                 </CardContent>
 
-                {/* Right Section - Request Button */}
                 <CardActions style={{ flex: 1, justifyContent: "flex-end" }}>
                   <Button
                     variant="contained"
