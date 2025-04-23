@@ -111,20 +111,22 @@ const AdvisorRequest = () => {
         minHeight: "100vh",
         background: "linear-gradient(to right, #0f2027, #203a43, #2c5364)",
         color: "#fff",
+        pt: 10, // padding top for spacing below navbar (adjust as needed)
+        px: 3, // padding left and right (24px each side)
+        pb: 6, // optional: bottom padding
       }}
     >
       <Container maxWidth="lg" sx={{ marginTop: "20px", paddingBottom: 6 }}>
-        <Grid container spacing={3}>
+        <Grid container spacing={25}>
           {/* Left Sidebar Filter */}
           <Grid
             item
-            xs={12}
-            sm={6}
-            md={4}
-            lg={3}
+            xs={12} // 100% width on extra small screens
+            sm={6} // 50% width on small screens
+            md={6} // 50% width on medium screens (increased width)
+            lg={6} // 50% width on large screens (increased width)
             sx={{
-              backgroundColor: "rgba(0, 0, 0, 0.6)",
-              borderRadius: "15px",
+              borderRadius: "70px",
               padding: 3,
             }}
           >
@@ -139,13 +141,12 @@ const AdvisorRequest = () => {
           {/* Right Content */}
           <Grid
             item
-            xs={12}
-            sm={12}
-            md={8}
-            lg={9}
+            xs={12} // 100% width on extra small screens
+            sm={6} // 50% width on small screens
+            md={12} // 50% width on medium screens (increased width)
+            lg={12} // 50% width on large screens (increased width)
             sx={{
-              backgroundColor: "rgba(0, 0, 0, 0.6)",
-              borderRadius: "15px",
+              borderRadius: "70px",
               padding: 3,
             }}
           >
@@ -159,8 +160,7 @@ const AdvisorRequest = () => {
                   <Grid item xs={12} key={index}>
                     <Card
                       sx={{
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
-                        borderRadius: "20px",
+                        borderRadius: "15px",
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "center",
@@ -192,8 +192,9 @@ const AdvisorRequest = () => {
                           color="secondary"
                           onClick={() => handleRequest(advisor.id, property)}
                           sx={{
-                            backgroundColor: "#ffffff",
-                            color: "#000",
+                            background:
+                              "linear-gradient(to right, #2c5364, #203a43, #2c5364)",
+                            color: "white",
                             fontWeight: "bold",
                             "&:hover": {
                               backgroundColor: "#e0e0e0",

@@ -35,7 +35,18 @@ const UserRequest = () => {
   };
 
   return (
-    <Box sx={{ padding: 3, display: "flex", justifyContent: "center" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "linear-gradient(to right, #0f2027, #203a43, #2c5364)",
+        color: "#fff",
+        justifyContent: "center",
+        display: "flex",
+        pt: 10, // padding top for spacing below navbar (adjust as needed)
+        px: 3, // padding left and right (24px each side)
+        pb: 6, // optional: bottom padding
+      }}
+    >
       <Box sx={{ width: "100%", maxWidth: 800 }}>
         <Typography variant="h4" gutterBottom align="center">
           Your Application
