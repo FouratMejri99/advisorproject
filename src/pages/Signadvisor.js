@@ -18,36 +18,39 @@ const Signadvisor = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (!username || !password || !price || !apartmentType || !postalCode) {
       setError("Please fill in all fields");
       return;
     }
 
-    // You can check if username already exists in localStorage or any database logic.
-    const advisors = JSON.parse(localStorage.getItem("advisors")) || [];
-    const existingAdvisor = advisors.find(
-      (advisor) => advisor.username === username
-    );
-    if (existingAdvisor) {
-      setError("Username already exists");
-      return;
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/advisors/signup",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username,
+            password,
+            price,
+            apartmentType,
+            postalCode,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Signup failed");
+      } else {
+        navigate("/loginadvisor"); // Redirect to login page
+      }
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError("An error occurred. Please try again.");
     }
-
-    // Generate a unique ID for each advisor
-    const newAdvisor = {
-      id: advisors.length + 1, // Simple unique id (could be more complex like UUID)
-      username,
-      password,
-      price,
-      apartmentType,
-      postalCode,
-      requests: [], // Initialize an empty array for requests
-    };
-
-    // Store new advisor in localStorage
-    localStorage.setItem("advisors", JSON.stringify([...advisors, newAdvisor]));
-    navigate("/loginadvisor"); // Redirect to login page after sign up
   };
 
   return (
@@ -57,7 +60,6 @@ const Signadvisor = () => {
       </Typography>
       {error && <Typography color="error">{error}</Typography>}
 
-      {/* Username Field */}
       <TextField
         label="Username"
         fullWidth
@@ -66,7 +68,6 @@ const Signadvisor = () => {
         sx={{ mb: 2 }}
       />
 
-      {/* Password Field */}
       <TextField
         label="Password"
         type="password"
@@ -76,7 +77,6 @@ const Signadvisor = () => {
         sx={{ mb: 2 }}
       />
 
-      {/* Price Field */}
       <TextField
         label="Price"
         type="number"
@@ -86,7 +86,6 @@ const Signadvisor = () => {
         sx={{ mb: 2 }}
       />
 
-      {/* Apartment Type Dropdown */}
       <TextField
         select
         label="Apartment Type"
@@ -100,7 +99,6 @@ const Signadvisor = () => {
         <MenuItem value="Condo">Condo</MenuItem>
       </TextField>
 
-      {/* Postal Code Field */}
       <TextField
         label="Postal Code"
         fullWidth
@@ -109,7 +107,6 @@ const Signadvisor = () => {
         sx={{ mb: 2 }}
       />
 
-      {/* Sign Up Button */}
       <Button variant="contained" onClick={handleSignUp} fullWidth>
         Sign Up
       </Button>

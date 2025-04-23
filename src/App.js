@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Login from "./pages/login";
 import Loginadvisor from "./pages/loginadvisor";
 import Signadvisor from "./pages/Signadvisor";
+import UserRequest from "./pages/userrequest";
 
 function App() {
   const [userType, setUserType] = useState(null); // null, 'admin', 'advisor', or 'normal'
@@ -27,6 +28,7 @@ function App() {
           element={<Loginadvisor setUserType={setUserType} />}
         />
         <Route path="/dashboard" element={<AdvisorDashboard />} />
+        <Route path="/UserRequest" element={<UserRequest />} />
         <Route path="/signadvisor" element={<Signadvisor />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/advisorRequest" element={<AdvisorRequest />} />

@@ -1,229 +1,198 @@
 import {
   Button,
-  Checkbox,
   Container,
-  FormControlLabel,
   Grid,
-  MenuItem,
-  Slider,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
-const fetchLoggedInAdvisor = () => {
-  return JSON.parse(localStorage.getItem("currentAdvisor"));
-};
-
-const fetchAdvisors = () => {
-  return JSON.parse(localStorage.getItem("advisors")) || [];
-};
-
-const saveAdvisors = (advisors) => {
-  localStorage.setItem("advisors", JSON.stringify(advisors));
-};
-
-const AdvisorCreateRequest = () => {
-  const [currentAdvisor, setCurrentAdvisor] = useState(null);
-  const [advisorName, setAdvisorName] = useState("");
-  const [priceRange, setPriceRange] = useState([50, 200]);
-  const [livingArea, setLivingArea] = useState([50, 150]);
-  const [postalCode, setPostalCode] = useState("");
-  const [houseNo, setHouseNo] = useState("");
-  const [addition, setAddition] = useState("");
-  const [propertyType, setPropertyType] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [description, setDescription] = useState("");
-  const [showDescription, setShowDescription] = useState(false);
+const AdvisorPricingTable = () => {
+  const [postalCodeRanges, setPostalCodeRanges] = useState([]);
+  const [newRange, setNewRange] = useState({ min: "", max: "" });
+  const [prices, setPrices] = useState({});
+  const [advisor, setAdvisor] = useState(null);
 
   useEffect(() => {
-    const advisor = fetchLoggedInAdvisor();
-    if (advisor) {
-      setCurrentAdvisor(advisor);
-      const advisors = fetchAdvisors();
-      const matchedAdvisor = advisors.find((adv) => adv.id === advisor.id);
-      if (matchedAdvisor) {
-        setAdvisorName(matchedAdvisor.name);
-      }
+    // Get the current advisor from localStorage
+    const storedAdvisor = JSON.parse(localStorage.getItem("currentAdvisor"));
+
+    if (storedAdvisor) {
+      setAdvisor(storedAdvisor);
+      // Get the postal code ranges stored under the advisor
+      const storedData =
+        JSON.parse(localStorage.getItem("postalPricing")) || [];
+      setPostalCodeRanges(storedData);
     }
   }, []);
 
-  const handleCreate = () => {
-    if (
-      !postalCode ||
-      !houseNo ||
-      !propertyType ||
-      !companyName ||
-      !currentAdvisor
-    )
-      return;
-
-    const newProperty = {
-      postalCode,
-      houseNo,
-      addition,
-      propertyType,
-      priceRange,
-      livingArea,
-      companyName,
-      description,
-    };
-
-    let advisors = fetchAdvisors();
-    let updatedAdvisors = advisors.map((adv) => {
-      if (adv.id === currentAdvisor.id) {
-        return {
-          ...adv,
-          properties: [...(adv.properties || []), newProperty], // Append new property
-        };
-      }
-      return adv;
-    });
-
-    saveAdvisors(updatedAdvisors);
-    setCurrentAdvisor(
-      updatedAdvisors.find((adv) => adv.id === currentAdvisor.id)
-    );
-
-    // Reset form fields
-    setPostalCode("");
-    setHouseNo("");
-    setAddition("");
-    setPropertyType("");
-    setPriceRange([50, 200]);
-    setLivingArea([50, 150]);
-    setCompanyName("");
-    setDescription("");
-    setShowDescription(false);
+  const handleAddRange = () => {
+    if (newRange.min && newRange.max) {
+      const updatedRanges = [...postalCodeRanges, { ...newRange }];
+      setPostalCodeRanges(updatedRanges);
+      localStorage.setItem("postalPricing", JSON.stringify(updatedRanges));
+      setNewRange({ min: "", max: "" });
+    }
   };
 
-  if (!currentAdvisor) {
-    return <Typography variant="h6">Loading...</Typography>;
-  }
+  const handlePriceChange = (rangeIndex, surface, type, value) => {
+    setPrices((prev) => {
+      const updatedPrices = { ...prev };
+      if (!updatedPrices[rangeIndex]) updatedPrices[rangeIndex] = {};
+      if (!updatedPrices[rangeIndex][surface])
+        updatedPrices[rangeIndex][surface] = {};
+      updatedPrices[rangeIndex][surface][type] = value;
+      return updatedPrices;
+    });
+  };
+
+  const propertyTypes = ["Apartment", "Two Under One Roof", "Detached"];
+  const surfaceAreas = ["50-100 m", "100-150 m", "150-200 m"];
+
+  const handleDeleteRange = (rangeIndex) => {
+    const updatedRanges = postalCodeRanges.filter(
+      (_, index) => index !== rangeIndex
+    );
+    setPostalCodeRanges(updatedRanges);
+    localStorage.setItem("postalPricing", JSON.stringify(updatedRanges));
+  };
+
+  const handleCreatePricingData = () => {
+    // Create an object with the current pricing data to store under the advisor
+    const pricingData = {
+      advisorId: advisor.id, // Assuming each advisor has a unique 'id'
+      postalCodeRanges,
+      prices,
+    };
+
+    // Store the data under the advisor's unique ID in localStorage
+    localStorage.setItem(
+      `advisorPricing-${advisor.id}`,
+      JSON.stringify(pricingData)
+    );
+
+    // Optionally, show a success message or provide feedback
+    alert("Pricing data has been saved successfully!");
+  };
 
   return (
     <Container maxWidth="md" style={{ marginTop: "20px" }}>
-      <Typography variant="h4" gutterBottom>
-        Please Create Your Label {advisorName}
-      </Typography>
+      {advisor ? (
+        <>
+          <Typography variant="h4" gutterBottom>
+            {advisor.username}'s Postal Code Ranges & Pricing
+          </Typography>
+          <Typography variant="h6" gutterBottom>
+            {advisor.description}
+          </Typography>
 
-      <Grid container spacing={2} sx={{ mb: 3, flexDirection: "column" }}>
-        <Grid item>
-          <TextField
-            label="Company Name"
-            fullWidth
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-          />
-        </Grid>
-        <Grid item>
-          <TextField
-            label="Postal Code"
-            fullWidth
-            value={postalCode}
-            onChange={(e) => setPostalCode(e.target.value)}
-          />
-        </Grid>
-        <Grid item>
-          <TextField
-            label="House No."
-            fullWidth
-            value={houseNo}
-            onChange={(e) => setHouseNo(e.target.value)}
-          />
-        </Grid>
-        <Grid item>
-          <TextField
-            label="Addition"
-            fullWidth
-            value={addition}
-            onChange={(e) => setAddition(e.target.value)}
-          />
-        </Grid>
-        <Grid item>
-          <TextField
-            select
-            label="Type of Property"
-            fullWidth
-            value={propertyType}
-            onChange={(e) => setPropertyType(e.target.value)}
-          >
-            <MenuItem value="Apartment">Apartment</MenuItem>
-            <MenuItem value="Row/Between">Row/Between</MenuItem>
-            <MenuItem value="Corner/Semi-Detached House">
-              Corner/Semi-Detached House
-            </MenuItem>
-            <MenuItem value="Detached">Detached</MenuItem>
-          </TextField>
-        </Grid>
-
-        {/* Price Range Slider */}
-        <Grid item>
-          <Typography gutterBottom>Price Range (€)</Typography>
-          <Slider
-            value={priceRange}
-            onChange={(e, newValue) => setPriceRange(newValue)}
-            valueLabelDisplay="auto"
-            min={50}
-            max={500}
-            step={50}
-          />
-        </Grid>
-
-        {/* Living Area Slider */}
-        <Grid item>
-          <Typography gutterBottom>Living Area (m²)</Typography>
-          <Slider
-            value={livingArea}
-            onChange={(e, newValue) => setLivingArea(newValue)}
-            valueLabelDisplay="auto"
-            min={0}
-            max={250}
-            step={50}
-            marks={[
-              { value: 0, label: "0-50 m²" },
-              { value: 50, label: "50-100 m²" },
-              { value: 100, label: "100-150 m²" },
-              { value: 150, label: "150-200 m²" },
-              { value: 200, label: "200-250 m²" },
-              { value: 250, label: "250 m² +" },
-            ]}
-          />
-        </Grid>
-
-        {/* Description Checkbox and Input */}
-        <Grid item>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={showDescription}
-                onChange={() => setShowDescription(!showDescription)}
+          <Grid container spacing={2}>
+            <Grid item xs={5}>
+              <TextField
+                label="Min Postal Code"
+                fullWidth
+                value={newRange.min}
+                onChange={(e) =>
+                  setNewRange({ ...newRange, min: e.target.value })
+                }
               />
-            }
-            label="Add Description"
-          />
-        </Grid>
-
-        {showDescription && (
-          <Grid item>
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            </Grid>
+            <Grid item xs={5}>
+              <TextField
+                label="Max Postal Code"
+                fullWidth
+                value={newRange.max}
+                onChange={(e) =>
+                  setNewRange({ ...newRange, max: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddRange}
+              >
+                Add Range
+              </Button>
+            </Grid>
           </Grid>
-        )}
-      </Grid>
 
-      {/* Submit Button */}
-      <Button variant="contained" color="primary" onClick={handleCreate}>
-        Create
-      </Button>
+          {postalCodeRanges.map((range, rangeIndex) => (
+            <div key={rangeIndex} style={{ marginTop: 20 }}>
+              <Typography variant="h6">
+                Postal Code: {range.min} - {range.max}
+                <Button
+                  color="secondary"
+                  onClick={() => handleDeleteRange(rangeIndex)}
+                  style={{ marginLeft: 10 }}
+                >
+                  Delete
+                </Button>
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Surface Area</TableCell>
+                      {propertyTypes.map((type) => (
+                        <TableCell key={type}>{type}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {surfaceAreas.map((surface) => (
+                      <TableRow key={surface}>
+                        <TableCell>{surface}</TableCell>
+                        {propertyTypes.map((type) => (
+                          <TableCell key={type}>
+                            <TextField
+                              type="number"
+                              value={
+                                prices[rangeIndex]?.[surface]?.[type] || ""
+                              }
+                              onChange={(e) =>
+                                handlePriceChange(
+                                  rangeIndex,
+                                  surface,
+                                  type,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+          ))}
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreatePricingData}
+            style={{ marginTop: "20px" }}
+          >
+            Create Pricing Data
+          </Button>
+        </>
+      ) : (
+        <Typography variant="h6" color="error">
+          You need to log in first to access the advisor pricing table.
+        </Typography>
+      )}
     </Container>
   );
 };
 
-export default AdvisorCreateRequest;
+export default AdvisorPricingTable;

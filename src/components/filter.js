@@ -1,58 +1,105 @@
-// Filter.js
 import {
+  Box,
   Card,
   CardContent,
+  Divider,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
+  Slider,
   Typography,
 } from "@mui/material";
 import React from "react";
 
 const Filter = ({ priceFilter, setPriceFilter, typeFilter, setTypeFilter }) => {
-  const handlePriceFilterChange = (event) => {
-    const value = event.target.value;
-    setPriceFilter(value);
+  // Function to handle slider change
+  const handleSliderChange = (event, newValue) => {
+    setPriceFilter(newValue);
   };
 
-  const handleTypeFilterChange = (event) => {
-    const value = event.target.value;
-    setTypeFilter(value);
+  // Function to format the price range
+  const formatPriceRange = (value) => {
+    return `€${value[0].toLocaleString()} - €${value[1].toLocaleString()}`;
   };
 
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6">Filters</Typography>
+        <Typography variant="h6" gutterBottom>
+          Your data
+        </Typography>
 
-        {/* Price Filter */}
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Price Range</InputLabel>
+        <Box mb={2}>
+          <Typography variant="body2">
+            <strong>Postcode:</strong> 1234AB
+          </Typography>
+          <Typography variant="body2">
+            <strong>House number:</strong> 10 A
+          </Typography>
+          <Typography variant="body2">
+            <strong>Building type:</strong> House
+          </Typography>
+        </Box>
+
+        <Divider sx={{ my: 4 }} />
+
+        <Typography variant="subtitle1" gutterBottom>
+          Surface
+        </Typography>
+        <FormControl fullWidth margin="dense">
+          <InputLabel>Living Area</InputLabel>
           <Select
-            value={priceFilter}
-            onChange={handlePriceFilterChange}
-            label="Price Range"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
           >
-            <MenuItem value={[0, 1000000]}>All Prices</MenuItem>
-            <MenuItem value={[0, 500000]}>€0 - €500,000</MenuItem>
-            <MenuItem value={[500000, 1000000]}>€500,000 - €1,000,000</MenuItem>
-            <MenuItem value={[1000000, 10000000]}>€1,000,000+</MenuItem>
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="small">0 - 50 m²</MenuItem>
+            <MenuItem value="medium">50 - 100 m²</MenuItem>
+            <MenuItem value="large">150+ m²</MenuItem>
           </Select>
         </FormControl>
 
-        {/* Type Filter */}
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Property Type</InputLabel>
-          <Select
-            value={typeFilter}
-            onChange={handleTypeFilterChange}
-            label="Property Type"
+        <Divider sx={{ my: 4 }} />
+
+        {/* Price Range Slider */}
+        <div>
+          <Typography variant="subtitle1" gutterBottom>
+            Price Range in euros
+          </Typography>
+
+          <Box sx={{ width: "100%" }}>
+            <Slider
+              value={priceFilter}
+              onChange={handleSliderChange}
+              valueLabelDisplay="auto"
+              valueLabelFormat={(value) => `€${value.toLocaleString()}`}
+              min={0}
+              max={1000}
+              step={50}
+            />
+          </Box>
+
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            sx={{ marginTop: "10px" }}
           >
-            <MenuItem value="">All Types</MenuItem>
-            <MenuItem value="apartment">Apartment</MenuItem>
-            <MenuItem value="house">House</MenuItem>
-            <MenuItem value="commercial">Commercial</MenuItem>
+            {formatPriceRange(priceFilter)}
+          </Typography>
+        </div>
+
+        <Divider sx={{ my: 4 }} />
+
+        <Typography variant="subtitle1" gutterBottom>
+          Methodology
+        </Typography>
+        <FormControl fullWidth margin="dense">
+          <InputLabel>Method</InputLabel>
+          <Select>
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="basic">Basic methodology</MenuItem>
+            <MenuItem value="detailed">Detailed methodology</MenuItem>
           </Select>
         </FormControl>
       </CardContent>

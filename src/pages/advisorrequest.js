@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Card,
   CardActions,
@@ -8,7 +9,8 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import Filter from "../components/filter";
 
 // Fetch all advisors data
 const fetchAdvisors = () => {
@@ -16,12 +18,15 @@ const fetchAdvisors = () => {
 };
 
 const AdvisorRequest = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const selectedPropertyType = queryParams.get("propertyType") || "";
 
   const [advisor, setAdvisor] = useState(null);
   const [properties, setProperties] = useState([]);
+  const [typeFilter, setTypeFilter] = useState("");
+  const [priceFilter, setPriceFilter] = useState([0, 10000000]);
 
   useEffect(() => {
     const loggedInAdvisor = JSON.parse(localStorage.getItem("currentAdvisor"));
@@ -33,27 +38,56 @@ const AdvisorRequest = () => {
       if (foundAdvisor) {
         setAdvisor(foundAdvisor);
 
-        // Filter properties by selectedPropertyType from URL
-        const filteredProperties = selectedPropertyType
-          ? foundAdvisor.properties.filter(
-              (property) => property.propertyType === selectedPropertyType
-            )
-          : foundAdvisor.properties;
+        let filtered = [...foundAdvisor.properties];
 
-        setProperties(filteredProperties);
+        if (selectedPropertyType) {
+          filtered = filtered.filter(
+            (p) => p.propertyType === selectedPropertyType
+          );
+        }
+
+        if (typeFilter) {
+          filtered = filtered.filter((p) => p.propertyType === typeFilter);
+        }
+
+        filtered = filtered.filter((p) => {
+          const price = p.priceRange[1];
+          return price >= priceFilter[0] && price <= priceFilter[1];
+        });
+
+        setProperties(filtered);
       }
     }
-  }, [selectedPropertyType]); // Trigger filtering when URL parameter changes
+  }, [selectedPropertyType, priceFilter, typeFilter]);
+
+  const filterProperties = (allProperties) => {
+    let filtered = [...allProperties];
+
+    if (selectedPropertyType) {
+      filtered = filtered.filter(
+        (p) => p.propertyType === selectedPropertyType
+      );
+    }
+
+    if (typeFilter) {
+      filtered = filtered.filter((p) => p.propertyType === typeFilter);
+    }
+
+    filtered = filtered.filter((p) => {
+      const price = p.priceRange[1]; // Use max price in range
+      return price >= priceFilter[0] && price <= priceFilter[1];
+    });
+
+    setProperties(filtered);
+  };
 
   const handleRequest = (advisorId, property) => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser")) || {
       name: "Random User",
     };
 
-    // Retrieve existing requests
     const requests = JSON.parse(localStorage.getItem("advisorRequests")) || [];
 
-    // Create new request
     const newRequest = {
       id: Date.now(),
       clientName: currentUser.name,
@@ -62,72 +96,122 @@ const AdvisorRequest = () => {
       status: "pending",
     };
 
-    // Save updated requests
     localStorage.setItem(
       "advisorRequests",
       JSON.stringify([...requests, newRequest])
     );
 
     console.log("Request sent:", newRequest);
+    navigate("/UserRequest");
   };
 
   return (
-    <Container maxWidth="md" style={{ marginTop: "20px" }}>
-      <Typography variant="h4" gutterBottom>
-        Our energy label advisors selected for you
-      </Typography>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "linear-gradient(to right, #0f2027, #203a43, #2c5364)",
+        color: "#fff",
+      }}
+    >
+      <Container maxWidth="lg" sx={{ marginTop: "20px", paddingBottom: 6 }}>
+        <Grid container spacing={3}>
+          {/* Left Sidebar Filter */}
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            md={4}
+            lg={3}
+            sx={{
+              backgroundColor: "rgba(0, 0, 0, 0.6)",
+              borderRadius: "15px",
+              padding: 3,
+            }}
+          >
+            <Filter
+              priceFilter={priceFilter}
+              setPriceFilter={setPriceFilter}
+              typeFilter={typeFilter}
+              setTypeFilter={setTypeFilter}
+            />
+          </Grid>
 
-      <Grid container spacing={2} direction="column">
-        {properties.length === 0 ? (
-          <Typography variant="h6" color="textSecondary">
-            No properties found for selected type.
-          </Typography>
-        ) : (
-          properties.map((property, index) => (
-            <Grid item xs={12} key={index}>
-              <Card
-                style={{
-                  width: "100%",
-                  height: "150px",
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "20px",
-                }}
-              >
-                <CardContent style={{ flex: 3 }}>
-                  <Typography variant="h6" component="div">
-                    {property.propertyType}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    <strong>Price Range:</strong> €{property.priceRange[0]} - €
-                    {property.priceRange[1]}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    <strong>Living Area:</strong> {property.livingArea[0]} -{" "}
-                    {property.livingArea[1]} m²
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    <strong>Postal Code:</strong> {property.postalCode}
-                  </Typography>
-                </CardContent>
+          {/* Right Content */}
+          <Grid
+            item
+            xs={12}
+            sm={12}
+            md={8}
+            lg={9}
+            sx={{
+              backgroundColor: "rgba(0, 0, 0, 0.6)",
+              borderRadius: "15px",
+              padding: 3,
+            }}
+          >
+            {properties.length === 0 ? (
+              <Typography variant="h6" color="textSecondary">
+                No properties found for selected type.
+              </Typography>
+            ) : (
+              <Grid container spacing={2} direction="column">
+                {properties.map((property, index) => (
+                  <Grid item xs={12} key={index}>
+                    <Card
+                      sx={{
+                        backgroundColor: "rgba(255, 255, 255, 0.1)",
+                        borderRadius: "20px",
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "20px",
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+                      }}
+                    >
+                      <CardContent sx={{ flex: 3 }}>
+                        <Typography variant="h6" component="div">
+                          {property.propertyType}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          <strong>Price Range:</strong> €
+                          {property.priceRange[0]} - €{property.priceRange[1]}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          <strong>Living Area:</strong> {property.livingArea[0]}{" "}
+                          - {property.livingArea[1]} m²
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          <strong>Postal Code:</strong> {property.postalCode}
+                        </Typography>
+                      </CardContent>
 
-                <CardActions style={{ flex: 1, justifyContent: "flex-end" }}>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => handleRequest(advisor.id, property)}
-                  >
-                    Request
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))
-        )}
-      </Grid>
-    </Container>
+                      <CardActions sx={{ flex: 1, justifyContent: "flex-end" }}>
+                        <Button
+                          variant="contained"
+                          color="secondary"
+                          onClick={() => handleRequest(advisor.id, property)}
+                          sx={{
+                            backgroundColor: "#ffffff",
+                            color: "#000",
+                            fontWeight: "bold",
+                            "&:hover": {
+                              backgroundColor: "#e0e0e0",
+                            },
+                          }}
+                        >
+                          To Request
+                        </Button>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 
